@@ -12,12 +12,23 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter; // Import this
 
 import javax.sql.DataSource;
+import java.util.HashMap; // Import this
 import java.util.Map;
 
 @Configuration
 public class DataSourceConfig {
+
+    @Bean
+    public EntityManagerFactoryBuilder entityManagerFactoryBuilder() {
+        return new EntityManagerFactoryBuilder(
+                new HibernateJpaVendorAdapter(), // Add HibernateJpaVendorAdapter
+                new HashMap<>(), // Provide an empty HashMap for JPA properties
+                null // No PersistenceUnitManager needed here
+        );
+    }
 
     @Primary
     @Bean(name="primaryDataSource")
@@ -38,7 +49,7 @@ public class DataSourceConfig {
             EntityManagerFactoryBuilder b,
             @Qualifier("primaryDataSource") DataSource ds) {
         return b.dataSource(ds)
-                .packages("br.spring.cloud.examplemicroservice")
+                .packages("br.spring.cloud.examplemicroservice.entity")
                 .persistenceUnit("primary")
                 .build();
     }
@@ -48,7 +59,7 @@ public class DataSourceConfig {
             EntityManagerFactoryBuilder b,
             @Qualifier("secondaryDataSource") DataSource ds) {
         return b.dataSource(ds)
-                .packages("br.spring.cloud.examplemicroservice")
+                .packages("br.spring.cloud.examplemicroservice.entity")
                 .persistenceUnit("secondary")
                 .build();
     }
@@ -76,5 +87,4 @@ public class DataSourceConfig {
         routing.setDefaultTargetDataSource(primary);
         return routing;
     }
-
 }
